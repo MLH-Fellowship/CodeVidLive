@@ -1,0 +1,6 @@
+using Pkg
+
+Pkg.add("Distances")
+Pkg.add("Pathogen")
+Pkg.add("Random")
+Pkg.add("Plots")
