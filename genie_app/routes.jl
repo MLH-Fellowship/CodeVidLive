@@ -9,7 +9,7 @@ struct Prediction
 end
 
 function toJson(prediction::Prediction) 
-  (:latitude => prediction.latitude, :longitude => prediction.longitude, :chance => prediction.chance)
+  Dict(:latitude => prediction.latitude, :longitude => prediction.longitude, :chance => prediction.chance)
 end
 
 route("/") do
