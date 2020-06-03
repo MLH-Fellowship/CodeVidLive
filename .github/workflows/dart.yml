@@ -19,6 +19,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
-      run: cd ./codevid_live_app && pub get
+      run: pub get
     - name: Run tests
       run: pub run test
