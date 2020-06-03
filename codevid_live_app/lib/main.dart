@@ -5,6 +5,9 @@ import 'dart:io';
 
 
 Future<Position> _future;
+List<Polyline> _polyLine = [];
+Set<Marker> markers = Set();
+Set<Circle> circles = Set();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,6 +53,31 @@ class _MyAppState extends State<MyApp> {
                 future: _future,
                 builder: (context, snapshot) {
                   print(snapshot.data.latitude);
+                  markers.addAll([
+                    Marker(
+                        markerId: MarkerId('value'),
+                        position: LatLng(snapshot.data.latitude, snapshot.data.longitude)),
+                  ]);
+                  _polyLine.add(Polyline(
+                    polylineId: PolylineId("route1"),
+                    color: Colors.blue,
+                    patterns: [
+                      PatternItem.dash(20.0),
+                      PatternItem.gap(10)
+                    ],
+                    width: 3,
+                    points: [
+                      LatLng(snapshot.data.latitude, snapshot.data.longitude),
+                      LatLng(snapshot.data.latitude, snapshot.data.longitude + 20),
+                      LatLng(snapshot.data.latitude+20, snapshot.data.longitude+20),
+                      LatLng(snapshot.data.latitude+20, snapshot.data.longitude),
+                      LatLng(snapshot.data.latitude, snapshot.data.longitude),
+                    ],
+                  ));
+                  circles.add(Circle(
+                    circleId: CircleId('value1'),
+                    center: LatLng(snapshot.data.latitude, snapshot.data.longitude),
+                    radius: 4000,));
                   return Stack(children: <Widget>[
                     GoogleMap(
                       initialCameraPosition: CameraPosition(
@@ -57,6 +85,9 @@ class _MyAppState extends State<MyApp> {
                               snapshot.data.latitude, snapshot.data.longitude),
                           zoom: 12.0),
                       onMapCreated: _onMapCreated,
+                      markers:  markers,
+                      polylines: _polyLine.toSet(),
+                      circles: circles,
                     ),
                   ]
                   );
