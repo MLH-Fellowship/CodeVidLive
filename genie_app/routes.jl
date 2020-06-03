@@ -29,6 +29,6 @@ route("/api/prediction") do
       prediction = Prediction(longitude, latitude, 0.59)
       nearby_predictions = [Prediction(longitude, latitude, 0.59), Prediction(longitude, latitude, 0.59), Prediction(longitude, latitude, 0.59)]
       nearby_predictions_json = map(toJson, nearby_predictions);
-      ("requested" => toJson(prediction), "nearby" => nearby_predictions_json) |> json
+      Dict("requested" => toJson(prediction), "nearby" => nearby_predictions_json) |> json
   end
 end
