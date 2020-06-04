@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:io';
+import 'package:charts_flutter/flutter.dart' as charts;
 
 
 Future<Position> _future;
@@ -44,7 +45,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
         home: Scaffold(
             appBar: AppBar(
-              title: Text("CodeVid_live"),
+              title: Text("CodeVidLive"),
             ),
             body: FutureBuilder(
                 future: _future,
@@ -58,10 +59,106 @@ class _MyAppState extends State<MyApp> {
                           zoom: 12.0),
                       onMapCreated: _onMapCreated,
                     ),
+                    FloatingActionButton(
+                      onPressed: (){
+                        visualizationGraph(context);
+                      },)
                   ]
                   );
-                })
-        )
+                }),
+    )
     );
   }
+}
+
+
+// Charts
+
+void visualizationGraph(context){
+    showModalBottomSheet(
+    shape: RoundedRectangleBorder(
+     borderRadius: BorderRadius.circular(10.0),
+      ),
+    context: context,
+    backgroundColor:Colors.white,
+    builder: (context) => Container(    
+    height: 750,
+    padding: const EdgeInsets.all(20.0),
+    child: ListView(
+        children: <Widget>[        
+          Container(
+            padding: const EdgeInsets.only(left:95,right: 95, bottom: 20),
+            child:Divider(
+                  color: Colors.black54,
+                  thickness: 3,
+                ),
+              ),
+          Text(
+            "Monthly Covid Cases",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 25        
+            ),
+          ),
+          SizedBox(height: 20,),
+          ConstrainedBox(
+            constraints: BoxConstraints.expand(height: 250.0),
+            child: charts.BarChart(
+              _getSeriesData(), 
+              animate: true,
+              
+            ),
+          ),
+          
+        ],
+      ),
+              )
+              
+    );
+}
+
+class CovidData {
+  String month;
+  int cases;
+  CovidData({
+    @required this.month, 
+    @required this.cases
+  });
+}
+
+final List<CovidData> data = [
+    CovidData(
+      month: 'Jan',
+      cases: 50000
+    ),
+    CovidData(
+      month: 'Feb',
+      cases: 60000
+    ),
+    CovidData(
+      month: 'March',
+      cases: 70000
+    ),
+    CovidData(
+      month: 'April',
+      cases: 80000
+    ),
+    CovidData(
+      month: 'May',
+      cases: 50000
+    ),
+ 
+  ];
+  
+  _getSeriesData() {
+    List<charts.Series<CovidData, String>> series = [
+      charts.Series(
+        id: "Cases",
+        data: data,
+        domainFn: (CovidData series, _) => series.month.toString(),
+        measureFn: (CovidData series, _) => series.cases
+      )
+    ];
+    return series;
 }
