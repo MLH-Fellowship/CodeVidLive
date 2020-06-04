@@ -34,5 +34,5 @@ julia setup.jl
 
 ## Run Server
 
-1. Under the genie_app folder, run run_server.sh.
+1. Under the genie_app/bin folder, run `./server`.
 2. When prompted with julia REPL, run `up()`

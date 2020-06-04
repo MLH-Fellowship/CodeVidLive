@@ -36,11 +36,69 @@ Match when having spelling errors
 
 Legs and Steps from origin to the destination.
 
+### How are the results stored
+
+JSON routes array.
+
+### What are the elements of routes
+
+A single result from origin to destination
+
+### How may legs are there in a route
+
+One or more if way points are specified.
+
+### What are the in the routes array?
+
+Summary, legs, way point order, overview polyline, bounds, copyrights, warnings, and fare.
+
 ### Summary
 
 Short description
 
 ### Legs
+
+#### What is a leg
+
+A segment from the origin to the destination
+
+#### Steps
+
+Step for each leg
+
+#### distance
+
+##### Value
+
+##### Text
+
+#### duration
+
+##### value
+
+Duration in seconds
+
+##### text
+
+#### duration in traffic
+
+Duration with traffic conditions
+
+#### Arrival Time
+
+Returns Time object with Data object, text string, and time_zone
+
+#### Start Location
+
+Coordinates
+
+#### End Location
+
+Coordinates
+
+#### Start Address
+
+#### End Address
 
 ## Travel modes
 
