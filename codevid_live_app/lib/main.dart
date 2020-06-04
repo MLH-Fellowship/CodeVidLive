@@ -1,19 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:http/http.dart' as http;
-import 'dart:convert' as convert;
-import 'dart:math';
-import 'dart:core';
-import 'package:flutter/material.dart' show Colors;
-
-Future<Position> _future;
-List<Polyline> _polyLine = [];
-Set<Marker> markers = Set();
-Set<Circle> circles = Set();
-LatLng currentLoc;
-Geolocator geolocator;
+import 'package:codevidliveapp/map_view.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,146 +12,14 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  GoogleMapController mapController;
-
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
-
-  Future<Position> initPos() async {
-    geolocator = Geolocator()..forceAndroidLocationManager = true;
-    Position position = await geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    return position;
-  }
-
-  void testGetLocation() {
-    var response =
-        '{"nearby":[{"longitude":116.41576166666664,"chance":0.59,"latitude":40.042975},{"longitude":120.41576166666664,"chance":0.20,"latitude":43.042975},{"longitude":114.41576166666664,"chance":0.90,"latitude":43.042975}],"requested":{"longitude":-63.53797,"chance":0.59,"latitude":-81.46996}}';
-    var rng = new Random();
-    var jsonResponse = convert.jsonDecode(response);
-    List<dynamic> nearby = jsonResponse['nearby'];
-    circles.clear();
-    setState(() {
-      for (var i = 0; i < nearby.length; i++) {
-        circles.add(
-          Circle(
-            circleId: CircleId('value1' +
-                rng.nextInt(100).toString() +
-                rng.nextInt(100).toString()),
-            center: LatLng(nearby[i]['latitude'], nearby[i]['longitude']),
-            radius: nearby[i]['chance'] * 40000,
-            strokeColor: nearby[i]['chance'] < 0.30
-                ? Colors.green
-                : nearby[i]['chance'] < 0.60 ? Colors.yellow : Colors.red,
-            strokeWidth: (nearby[i]['chance'] * 100).toInt(),
-          ),
-        );
-      }
-    });
-  }
-
-  void onTapMap(LatLng point) {
-    markers.clear();
-    setState(() {
-      currentLoc = point;
-      markers.addAll([
-        Marker(
-          markerId: MarkerId('value'),
-          position: currentLoc,
-          infoWindow: InfoWindow(
-            title: "Your Locaiton",
-          ),
-          icon: BitmapDescriptor.defaultMarker,
-        )
-      ]);
-    });
-  }
-
-  void postLocation() async {
-    var url = '127.0.0.1/api/prediction?latitude=' +
-        currentLoc.latitude.toString() +
-        '&longitude=' +
-        currentLoc.longitude.toString();
-    // Await the http get response, then decode the json-formatted response.
-    var response = await http.get(url);
-    if (response.statusCode == 200) {
-      var rng = new Random();
-      var jsonResponse = convert.jsonDecode(response.body);
-      List<dynamic> nearby = jsonResponse['nearby'];
-      circles.clear();
-      setState(() {
-        for (var i = 0; i < nearby.length; i++) {
-          circles.add(
-            Circle(
-              circleId: CircleId('value1' +
-                  rng.nextInt(100).toString() +
-                  rng.nextInt(100).toString()),
-              center: LatLng(nearby[i]['latitude'], nearby[i]['longitude']),
-              radius: nearby[i]['chance'] * 40000,
-              strokeColor: nearby[i]['chance'] < 0.30
-                  ? Colors.green
-                  : nearby[i]['chance'] < 0.60 ? Colors.yellow : Colors.red,
-              strokeWidth: (nearby[i]['chance'] * 100).toInt(),
-            ),
-          );
-        }
-      });
-    } else {
-      print('Request failed with status: ${response.statusCode}.');
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _future = initPos();
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: Scaffold(
-      appBar: AppBar(
-        title: Text("CodeVidLive"),
-      ),
-      body: FutureBuilder(
-          future: _future,
-          builder: (context, snapshot) {
-            currentLoc = currentLoc == null
-                ? LatLng(snapshot.data.latitude, snapshot.data.longitude)
-                : currentLoc;
-            markers.addAll([
-              Marker(
-                markerId: MarkerId('value'),
-                position: currentLoc,
-                infoWindow: InfoWindow(
-                  title: "Your Locaiton",
-                ),
-                icon: BitmapDescriptor.defaultMarker,
-              )
-            ]);
-            return Stack(children: <Widget>[
-              GoogleMap(
-                initialCameraPosition: CameraPosition(
-                    target:
-                        LatLng(snapshot.data.latitude, snapshot.data.longitude),
-                    zoom: 12.0),
-                onMapCreated: _onMapCreated,
-                markers: markers,
-                polylines: _polyLine.toSet(),
-                circles: circles,
-                onCameraIdle: testGetLocation,
-                onTap: onTapMap,
-              ),
-              FloatingActionButton(
-                onPressed: () {
-                  visualizationGraph(context);
-                },
-              )
-            ]);
-          }),
-    ));
+        home: SafeArea(
+            child: GestureDetector(
+                child: Scaffold(
+      body: MapView(),
+    ))));
   }
 }
 
