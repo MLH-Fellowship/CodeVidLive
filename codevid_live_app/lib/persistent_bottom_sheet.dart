@@ -1,15 +1,19 @@
 import 'dart:async';
 
+import 'package:codevidliveapp/models.dart';
 import 'package:flutter/material.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:codevidliveapp/search_bar.dart';
+import 'package:codevidliveapp/graph.dart';
 
 class PersistentBottomSheet extends StatefulWidget {
   final Completer<GoogleMapController> mapController;
+  final TabController tabController;
 
-  const PersistentBottomSheet({Key key, this.mapController}) : super(key: key);
+  const PersistentBottomSheet({Key key, this.mapController, this.tabController})
+      : super(key: key);
 
   @override
   _PersistentBottomSheetState createState() => _PersistentBottomSheetState();
@@ -27,15 +31,25 @@ class _PersistentBottomSheetState extends State<PersistentBottomSheet> {
   @override
   void initState() {
     super.initState();
+    widget.tabController.addListener(_onTabChange);
     _focusNode.addListener(_onFocusChange);
   }
 
   @override
   void dispose() {
     _focusNode.removeListener(_onFocusChange);
+    widget.tabController.removeListener(_onTabChange);
     _focusNode.dispose();
     _textEditingController.dispose();
     super.dispose();
+  }
+
+  void _onTabChange() {
+    if (widget.tabController.index == 1) {
+      setState(() {
+        isHalfOpen = false;
+      });
+    }
   }
 
   void _onFocusChange() {
@@ -59,6 +73,7 @@ class _PersistentBottomSheetState extends State<PersistentBottomSheet> {
           setState(() {
             isHalfOpen = true;
             forceOpen = false;
+            widget.tabController.index = 0;
           });
         }
         return false;
@@ -93,10 +108,17 @@ class _PersistentBottomSheetState extends State<PersistentBottomSheet> {
                   ),
                 ),
                 Expanded(
-                    child: SearchBar(
-                        focusNode: _focusNode,
-                        textEditingController: _textEditingController,
-                        mapController: widget.mapController))
+                  child: TabBarView(
+                    controller: widget.tabController,
+                    children: [
+                      SearchBar(
+                          focusNode: _focusNode,
+                          textEditingController: _textEditingController,
+                          mapController: widget.mapController),
+                      Graph()
+                    ],
+                  ),
+                )
               ],
             ),
           ),
@@ -112,6 +134,7 @@ class _PersistentBottomSheetState extends State<PersistentBottomSheet> {
               if (!isHalfOpen && !forceOpen) {
                 setSheetState(() {
                   isHalfOpen = !isHalfOpen;
+                  widget.tabController.index = 0;
                 });
               }
             }

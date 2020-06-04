@@ -1,3 +1,5 @@
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 class PlaceModel {
   String name;
   String details;
@@ -29,7 +31,17 @@ class PlaceModel {
   }
 }
 
+class CovidData {
+  String month;
+  int cases;
+
+  CovidData({this.month, this.cases});
+}
+
 class StaticData {
   static var latitude;
   static var longitude;
+  static bool showGraph = false;
+
+  static LatLng currentLoc;
 }
