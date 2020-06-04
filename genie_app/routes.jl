@@ -1,10 +1,11 @@
-import Dates
+using Dates
 import Random
 
 using Genie, Genie.Router
 import Genie.Renderer.Json: json
 
 using JuliaDB
+using Distances
 
 # Probably need to move this logic to separate files
 # Struct for maps data
@@ -16,7 +17,7 @@ end
 
 # Struct for visualization
 struct VisualPoint
-  date
+  month
   noOfInfections
 end
 
@@ -26,7 +27,7 @@ function toJson(prediction::Prediction)
 end
 
 function toJson(point::VisualPoint)
-  Dict(:date => point.date, :noOfInfections => point.noOfInfections)
+  Dict(:month => point.month, :noOfInfections => point.noOfInfections)
 end
 
 route("/") do
@@ -53,22 +54,41 @@ end
 route("/api/time/series") do
   # Get required longitude and latitude query params
   longitude = haskey(@params, :longitude) ? parse(Float64, @params(:longitude)) : 0.0
-  latitude = haskey(@params, :latitude) ? parse(Float64, @params(:latitude)) : 0.0
-
-  table = loadtable("china-geolocation-dataset.csv")
-  print(table)
+  latitude = haskey(@params, :latitude) ? parse(Float64, @params(:latitude)) : 0.0  
 
   # Validate params exist
-  if longitude == "" || latitude == ""
+  if longitude == 0.0 || latitude == 0.0
     Dict(:message => "Longitude or latitude parameters are missing!") |> json
   else # If all validation passes
        # Return 10 points of dummy data for now
-      
+       
+       # Requested latlng
+       latlng = (latitude, longitude)
+       
+       # Load data
+       data = loadtable("china-geolocation-dataset.csv")
+       # Find points around requested location
+       filtered_data = filter(r -> haversine((r.latitude,  r.longitude), latlng, 6372.8) < 100, data)
+
+       # Separate NA and known data
+       na_data = filter(r -> r.date_confirmation == "NA", filtered_data)
+       clean_data = filter(r -> r.date_confirmation != "NA", filtered_data)
+
+       # Date format in CSV file
+       date_format = DateFormat("d.m.y")
+       
+       # Result of points
        points = []
-       today = Dates.today()
-       for counter in [0:1:10;]
-        push!(points, toJson(VisualPoint(today, rand(1:100))))
+
+       # Push NA data
+       push!(points, toJson(VisualPoint("Unknown", length(na_data))))
+
+       # Push data for each month
+       months = ["December", "January", "February", "March", "April"]
+       for month in months
+        push!(points, toJson(VisualPoint(month, length(filter(r -> Dates.monthname(Date(r.date_confirmation, date_format)) == month, clean_data)))))
        end
+       
        Dict(:points => points) |> json;
   end
 end
