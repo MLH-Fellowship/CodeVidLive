@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'dart:io';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 import 'dart:math';
 import 'dart:core';
-import 'package:flutter/material.dart' show Color, Colors;
+import 'package:flutter/material.dart' show Colors;
 
 Future<Position> _future;
 List<Polyline> _polyLine = [];
@@ -35,8 +34,6 @@ class _MyAppState extends State<MyApp> {
 
   Future<Position> initPos() async {
     geolocator = Geolocator()..forceAndroidLocationManager = true;
-    GeolocationStatus geolocationStatus =
-        await geolocator.checkGeolocationPermissionStatus();
     Position position = await geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
     return position;
@@ -76,6 +73,10 @@ class _MyAppState extends State<MyApp> {
         Marker(
           markerId: MarkerId('value'),
           position: currentLoc,
+          infoWindow: InfoWindow(
+            title: "Your Locaiton",
+          ),
+          icon: BitmapDescriptor.defaultMarker,
         )
       ]);
     });
@@ -138,6 +139,10 @@ class _MyAppState extends State<MyApp> {
               Marker(
                 markerId: MarkerId('value'),
                 position: currentLoc,
+                infoWindow: InfoWindow(
+                  title: "Your Locaiton",
+                ),
+                icon: BitmapDescriptor.defaultMarker,
               )
             ]);
             return Stack(children: <Widget>[
