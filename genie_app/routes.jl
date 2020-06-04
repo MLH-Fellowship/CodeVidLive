@@ -4,6 +4,8 @@ import Random
 using Genie, Genie.Router
 import Genie.Renderer.Json: json
 
+using JuliaDB
+
 # Probably need to move this logic to separate files
 # Struct for maps data
 struct Prediction
@@ -52,6 +54,9 @@ route("/api/time/series") do
   # Get required longitude and latitude query params
   longitude = haskey(@params, :longitude) ? parse(Float64, @params(:longitude)) : 0.0
   latitude = haskey(@params, :latitude) ? parse(Float64, @params(:latitude)) : 0.0
+
+  table = loadtable("china-geolocation-dataset.csv")
+  print(table)
 
   # Validate params exist
   if longitude == "" || latitude == ""
