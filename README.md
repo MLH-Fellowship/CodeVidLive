@@ -31,3 +31,8 @@ Install Julia and include in system path
 ```bash
 julia setup.jl
 ```
+
+## Run Server
+
+1. Under the genie_app folder, run run_server.sh.
+2. When prompted with julia REPL, run `up()`
