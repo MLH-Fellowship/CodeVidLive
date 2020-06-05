@@ -1,4 +1,4 @@
-# CodeVid Live
+![](https://i.ibb.co/b5tPD6x/Green-Virus-6-1.png)
 
 **CodeVid Live** is a mobile application that allows its users to estimate the **probability of contamination** of corona virus if they stay at a particular area. This way the users can plan their travel routes, by knowing ahead of time to avoid routes where the probability of contamination is high. The same feature can be used by government and health care organizations to identify hot spots of contamination and take better and early measures for quarantine, preparation of medical supplies including provision of ventilators, quarantine wards etc.
 
@@ -36,8 +36,6 @@ cd genie_app/bin
 repl
 ```
 OR
-
-## Run Server
 
 1. Under the genie_app/bin folder, run `./server`.
 2. When prompted with julia REPL, run `up()`
