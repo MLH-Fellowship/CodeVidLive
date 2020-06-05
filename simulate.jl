@@ -5,8 +5,7 @@ using Distances,
       Plots,
       Plots.PlotMeasures; # Plots.PlotMeasures is used for advanced formatting control for figure output
 
-println("hello world")# Set seed
-Random.seed!(11235);
+Random.seed!(42);
 
 n = 100
 risks = DataFrame(x = rand(Uniform(0, 15), n),

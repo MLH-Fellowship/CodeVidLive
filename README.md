@@ -26,7 +26,6 @@ Install Julia and include in system path
 ```bash
 julia setup.jl
 ```
-
 #### Flutter
 For help getting started with Flutter, view their [online documentation](https://flutter.dev/docs), which offers tutorials.
 
@@ -38,11 +37,10 @@ repl
 ```
 OR
 
-To run in non-interactive mode
-```bash
-cd genie_app/bin
-server
-```
+## Run Server
+
+1. Under the genie_app/bin folder, run `./server`.
+2. When prompted with julia REPL, run `up()`
 
 ### Build flutter app
 ```cmd
