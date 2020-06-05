@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:codevidliveapp/map_view.dart';
-import 'package:charts_flutter/flutter.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

@@ -17,6 +17,13 @@ class MapView extends StatefulWidget {
   _MapViewState createState() => _MapViewState();
 }
 
+class Point {
+  LatLng latLng;
+  double chance;
+
+  Point({this.latLng, this.chance});
+}
+
 class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
   Future<Position> _future;
   Set<Marker> markers = Set();
@@ -39,12 +46,11 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
 
   Future<Position> initPos() async {
     Geolocator geolocator = Geolocator()..forceAndroidLocationManager = true;
-    GeolocationStatus geolocationStatus =
-        await geolocator.checkGeolocationPermissionStatus();
+    await geolocator.checkGeolocationPermissionStatus();
     Position position = await geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
-    StaticData.latitude = position.latitude;
-    StaticData.longitude = position.longitude;
+    StaticData.latitude = 31.64696;
+    StaticData.longitude = 118.7166;
 
     StaticData.currentLoc = LatLng(StaticData.latitude, StaticData.longitude);
     setState(() {
@@ -54,7 +60,6 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
           infoWindow: InfoWindow(),
           onTap: () {
             _tabController.index = 1;
-
           }));
     });
 
@@ -69,7 +74,10 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
       markers.add(Marker(
           markerId: MarkerId('requested'),
           position: currentLoc,
-          infoWindow: InfoWindow(),
+          infoWindow: InfoWindow(
+              title: 'Chance of infection: 7%, Timeframe: 1 hour',
+              snippet:
+                  'You have a low chance of infection'),
           onTap: () {
             _tabController.index = 1;
           }));
@@ -83,7 +91,6 @@ class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
 
       // Clear previous points
       circles.clear();
-      markers.clear();
 
       // Generate random circle id
       var rng = new Random();

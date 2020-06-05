@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 
 String mapBoxBaseUrl = "https://api.mapbox.com/geocoding/v5/mapbox.places/";
 String apiUrl = "http://127.0.0.1:8000/api/";
+String serverUrl = "http://192.34.61.122:8000/api/";
 
 class Api {
   static Future getMapPlaces(String search) {
@@ -13,6 +14,12 @@ class Api {
 
   static Future getPredictions(var longitude, var latitude) {
     String url = '${apiUrl}prediction/?longitude=$longitude&latitude=$latitude';
+    return http.get(url);
+  }
+
+  static Future getTimeSeries(var longitude, var latitude) {
+    String url =
+        '${serverUrl}time/series?longitude=$longitude&latitude=$latitude';
     return http.get(url);
   }
 }

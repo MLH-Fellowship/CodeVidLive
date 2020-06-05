@@ -11,8 +11,8 @@
     
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="codevidliveapp"
-        android:icon="@mipmap/ic_launcher">
+        android:label="CodeVid Live"
+        android:icon="@mipmap/ic_launcher_foreground">
 
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value=""/>
