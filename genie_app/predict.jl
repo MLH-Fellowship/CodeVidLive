@@ -22,9 +22,6 @@ function predict(clustor_lat, clustor_lng, lat, lng, time_frame, risk_function_t
     if risk_function_type == "neuts_and_li"
         virus_factor = neuts_and_li(100, 2, 0.2)
     end
-    # response = read_response()
-    # route = first(response["routes"])
-    # leg = first(route["legs"])
     eta = get_eta(clustor_lng, clustor_lat, lng, lat)
     return eta * virus_factor / time_frame 
 end

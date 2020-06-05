@@ -7,6 +7,7 @@ import Genie.Renderer.Json: json
 using JuliaDB
 using Distances
 
+include("predict.jl")
 # Probably need to move this logic to separate files
 # Struct for maps data
 struct Prediction
