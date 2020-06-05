@@ -1,39 +1,36 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:codevidliveapp/api.dart';
 import 'package:codevidliveapp/models.dart';
 import 'package:flutter/material.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:http/http.dart' as http;
-import 'dart:convert' as convert;
 import 'dart:math';
 import 'dart:core';
-import 'package:flutter/material.dart' show Colors;
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:codevidliveapp/persistent_bottom_sheet.dart';
 
-
-Future<Position> _future;
-List<Polyline> _polyLine = [];
-Set<Marker> markers = Set();
-Set<Circle> circles = Set();
-LatLng currentLoc;
-Geolocator geolocator;
-
 class MapView extends StatefulWidget {
   @override
   _MapViewState createState() => _MapViewState();
 }
 
-class _MapViewState extends State<MapView> {
-  Completer<GoogleMapController> _mapController = Completer();
+class _MapViewState extends State<MapView> with SingleTickerProviderStateMixin {
+  Future<Position> _future;
+  Set<Marker> markers = Set();
+  Set<Circle> circles = Set();
+  Geolocator geolocator;
 
-  void _onMapCreated(GoogleMapController controller) {
+  Completer<GoogleMapController> _mapController = Completer();
+  TabController _tabController;
+
+  void _onMapCreated(GoogleMapController controller) async {
     _mapController.complete(controller);
     Scaffold.of(context).showBottomSheet(
-        (context) => PersistentBottomSheet(mapController: _mapController),
+        (context) => PersistentBottomSheet(
+            mapController: _mapController, tabController: _tabController),
         elevation: 20,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
@@ -48,70 +45,56 @@ class _MapViewState extends State<MapView> {
         desiredAccuracy: LocationAccuracy.high);
     StaticData.latitude = position.latitude;
     StaticData.longitude = position.longitude;
+
+    StaticData.currentLoc = LatLng(StaticData.latitude, StaticData.longitude);
+    setState(() {
+      markers.add(Marker(
+          markerId: MarkerId('requested'),
+          position: StaticData.currentLoc,
+          infoWindow: InfoWindow(),
+          onTap: () {
+            _tabController.index = 1;
+
+          }));
+    });
+
     return position;
   }
-void testGetLocation() {
-    var response =
-        '{"nearby":[{"longitude":116.41576166666664,"chance":0.59,"latitude":40.042975},{"longitude":120.41576166666664,"chance":0.20,"latitude":43.042975},{"longitude":114.41576166666664,"chance":0.90,"latitude":43.042975}],"requested":{"longitude":-63.53797,"chance":0.59,"latitude":-81.46996}}';
-    var rng = new Random();
-    var jsonResponse = convert.jsonDecode(response);
-    List<dynamic> nearby = jsonResponse['nearby'];
-    circles.clear();
-    setState(() {
-      for (var i = 0; i < nearby.length; i++) {
-        circles.add(
-          Circle(
-            circleId: CircleId('value1' +
-                rng.nextInt(100).toString() +
-                rng.nextInt(100).toString()),
-            center: LatLng(nearby[i]['latitude'], nearby[i]['longitude']),
-            radius: nearby[i]['chance'] * 40000,
-            strokeColor: nearby[i]['chance'] < 0.30
-                ? Colors.green
-                : nearby[i]['chance'] < 0.60 ? Colors.yellow : Colors.red,
-            strokeWidth: (nearby[i]['chance'] * 100).toInt(),
-          ),
-        );
-      }
-    });
-  }
 
-  void onTapMap(LatLng point) {
+  void _getMarkerInfo() async {
+    LatLng currentLoc = StaticData.currentLoc;
+
     markers.clear();
     setState(() {
-      currentLoc = point;
-      markers.addAll([
-        Marker(
-          markerId: MarkerId('value'),
+      markers.add(Marker(
+          markerId: MarkerId('requested'),
           position: currentLoc,
-          infoWindow: InfoWindow(
-            title: "Your Locaiton",
-          ),
-          icon: BitmapDescriptor.defaultMarker,
-        )
-      ]);
+          infoWindow: InfoWindow(),
+          onTap: () {
+            _tabController.index = 1;
+          }));
     });
-  }
 
-  void postLocation() async {
-    var url = '127.0.0.1/api/prediction?latitude=' +
-        currentLoc.latitude.toString() +
-        '&longitude=' +
-        currentLoc.longitude.toString();
-    // Await the http get response, then decode the json-formatted response.
-    var response = await http.get(url);
+    var response =
+        await Api.getPredictions(currentLoc.longitude, currentLoc.latitude);
+
     if (response.statusCode == 200) {
-      var rng = new Random();
-      var jsonResponse = convert.jsonDecode(response.body);
-      List<dynamic> nearby = jsonResponse['nearby'];
+      var jsonResponse = jsonDecode(response);
+
+      // Clear previous points
       circles.clear();
+      markers.clear();
+
+      // Generate random circle id
+      var rng = new Random();
+      var nearby = jsonResponse['nearby'];
       setState(() {
         for (var i = 0; i < nearby.length; i++) {
+          String id = rng.nextInt(100).toString() + rng.nextInt(100).toString();
+
           circles.add(
             Circle(
-              circleId: CircleId('value1' +
-                  rng.nextInt(100).toString() +
-                  rng.nextInt(100).toString()),
+              circleId: CircleId('circle$i$id'),
               center: LatLng(nearby[i]['latitude'], nearby[i]['longitude']),
               radius: nearby[i]['chance'] * 40000,
               strokeColor: nearby[i]['chance'] < 0.30
@@ -120,10 +103,13 @@ void testGetLocation() {
               strokeWidth: (nearby[i]['chance'] * 100).toInt(),
             ),
           );
+
+          markers.add(Marker(
+            markerId: MarkerId('marker$i$id'),
+            position: LatLng(nearby[i]['latitude'], nearby[i]['longitude']),
+          ));
         }
       });
-    } else {
-      print('Request failed with status: ${response.statusCode}.');
     }
   }
 
@@ -131,121 +117,32 @@ void testGetLocation() {
   void initState() {
     super.initState();
     _future = initPos();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: Scaffold(
-      appBar: AppBar(
-        title: Text("CodeVidLive"),
-      ),
-      body: FutureBuilder(
-          future: _future,
-          builder: (context, snapshot) {
-            currentLoc = currentLoc == null
-                ? LatLng(snapshot.data.latitude, snapshot.data.longitude)
-                : currentLoc;
-            markers.addAll([
-              Marker(
-                markerId: MarkerId('value'),
-                position: currentLoc,
-                infoWindow: InfoWindow(
-                  title: "Your Locaiton",
-                ),
-                icon: BitmapDescriptor.defaultMarker,
-              )
-            ]);
-            return Stack(children: <Widget>[
-              GoogleMap(
-                initialCameraPosition: CameraPosition(
-                    target:
-                        LatLng(snapshot.data.latitude, snapshot.data.longitude),
-                    zoom: 12.0),
-                onMapCreated: _onMapCreated,
-                markers: markers,
-                polylines: _polyLine.toSet(),
-                circles: circles,
-                onCameraIdle: testGetLocation,
-                onTap: onTapMap,
-              ),
-              FloatingActionButton(
-                onPressed: () {
-                  visualizationGraph(context);
-                },
-              )
-            ]);
-          }),
-    ));
+    return FutureBuilder(
+        future: _future,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return GoogleMap(
+              initialCameraPosition:
+                  CameraPosition(target: StaticData.currentLoc, zoom: 12.0),
+              onMapCreated: _onMapCreated,
+              markers: markers,
+              circles: circles,
+              zoomControlsEnabled: false,
+              onCameraIdle: _getMarkerInfo,
+            );
+          }
+          return Center(child: CircularProgressIndicator());
+        });
   }
 }
-
-// Charts
-
-void visualizationGraph(context) {
-  showModalBottomSheet(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      context: context,
-      backgroundColor: Colors.white,
-      builder: (context) => Container(
-            height: 750,
-            padding: const EdgeInsets.all(20.0),
-            child: ListView(
-              children: <Widget>[
-                Container(
-                  padding:
-                      const EdgeInsets.only(left: 95, right: 95, bottom: 20),
-                  child: Divider(
-                    color: Colors.black54,
-                    thickness: 3,
-                  ),
-                ),
-                Text(
-                  "Monthly Covid Cases",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                ConstrainedBox(
-                  constraints: BoxConstraints.expand(height: 250.0),
-                  child: charts.BarChart(
-                    _getSeriesData(),
-                    animate: true,
-                  ),
-                ),
-              ],
-            ),
-          ));
-}
-
-class CovidData {
-  String month;
-  int cases;
-  CovidData({@required this.month, @required this.cases});
-}
-
-final List<CovidData> data = [
-  CovidData(month: 'Jan', cases: 50000),
-  CovidData(month: 'Feb', cases: 60000),
-  CovidData(month: 'March', cases: 70000),
-  CovidData(month: 'April', cases: 80000),
-  CovidData(month: 'May', cases: 50000),
-];
-
-_getSeriesData() {
-  List<charts.Series<CovidData, String>> series = [
-    charts.Series(
-        id: "Cases",
-        data: data,
-        domainFn: (CovidData series, _) => series.month.toString(),
-        measureFn: (CovidData series, _) => series.cases)
-  ];
-  return series;
-}
-
-
-

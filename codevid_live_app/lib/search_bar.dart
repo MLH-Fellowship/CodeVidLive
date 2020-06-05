@@ -74,10 +74,7 @@ class _SearchBarState extends State<SearchBar> {
             Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Container(
-                  height: MediaQuery
-                      .of(context)
-                      .size
-                      .height * 0.11,
+                  height: MediaQuery.of(context).size.height * 0.11,
                   child: TextFormField(
                       controller: widget.textEditingController,
                       focusNode: widget.focusNode,
@@ -85,16 +82,19 @@ class _SearchBarState extends State<SearchBar> {
                         suffixIcon: widget.textEditingController.text == ""
                             ? null
                             : IconButton(
-                          icon: Icon(Icons.clear),
-                          onPressed: () {
-                            setState(() {
-                              widget.textEditingController.text = "";
-                              placesList = [];
-                            });
-                            animateCamera(StaticData.latitude,
-                                StaticData.longitude);
-                          },
-                        ),
+                                icon: Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    widget.textEditingController.text = "";
+                                    placesList = [];
+                                  });
+                                  StaticData.currentLoc = LatLng(
+                                      StaticData.latitude,
+                                      StaticData.longitude);
+                                  animateCamera(StaticData.latitude,
+                                      StaticData.longitude);
+                                },
+                              ),
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.search),
                         hintText: "Where do you want to go?",
@@ -116,6 +116,10 @@ class _SearchBarState extends State<SearchBar> {
                               placesList[index].name;
                           widget.focusNode.unfocus();
 
+                          StaticData.currentLoc = LatLng(
+                              placesList[index].latitude,
+                              placesList[index].longitude);
+
                           animateCamera(placesList[index].latitude,
                               placesList[index].longitude);
                         });
@@ -129,12 +133,9 @@ class _SearchBarState extends State<SearchBar> {
   }
 
   animateCamera(var latitude, var longitude) async {
-    final GoogleMapController controller =
-    await widget.mapController.future;
+    final GoogleMapController controller = await widget.mapController.future;
 
-    controller.animateCamera(
-        CameraUpdate.newCameraPosition(CameraPosition(
-            target: LatLng(latitude, longitude),
-            zoom: 13)));
+    controller.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(target: LatLng(latitude, longitude), zoom: 13)));
   }
 }
