@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'package:charts_flutter/flutter.dart';
 
 import 'package:codevidliveapp/models.dart';
+import 'package:codevidliveapp/api.dart';
 
 class Graph extends StatefulWidget {
   @override
@@ -10,15 +13,21 @@ class Graph extends StatefulWidget {
 }
 
 class _GraphState extends State<Graph> {
-  final List<CovidData> data = [
-    CovidData(month: 'Jan', cases: 50000),
-    CovidData(month: 'Feb', cases: 60000),
-    CovidData(month: 'March', cases: 70000),
-    CovidData(month: 'April', cases: 80000),
-    CovidData(month: 'May', cases: 50000),
-  ];
+  final List<CovidData> data = [];
 
-  _getSeriesData() {
+  _getSeriesData() async {
+    var response = await Api.getTimeSeries(
+        StaticData.currentLoc.longitude, StaticData.currentLoc.latitude);
+    print(response.body);
+
+    var jsonResponse = jsonDecode(response.body);
+    print(jsonResponse);
+    data.clear();
+    for (var covidData in jsonResponse['points']) {
+      data.add(CovidData(
+          month: covidData['month'].substring(0, 3), cases: covidData['noOfInfections']));
+    }
+
     List<Series<CovidData, String>> series = [
       Series(
           id: "Cases",
@@ -49,10 +58,17 @@ class _GraphState extends State<Graph> {
           ),
           ConstrainedBox(
             constraints: BoxConstraints.expand(height: 200.0),
-            child: BarChart(
-              _getSeriesData(),
-              animate: true,
-            ),
+            child: FutureBuilder(
+                future: _getSeriesData(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return BarChart(
+                      snapshot.data,
+                      animate: true,
+                    );
+                  }
+                  return Center(child: CircularProgressIndicator());
+                }),
           ),
         ],
       ),

@@ -6,5 +6,6 @@ Pkg.add("Random")
 Pkg.add("Plots")
 Pkg.add("Revise")
 Pkg.add("Genie")
-Pkg.add("JuliaDB")
 Pkg.add("JSON")
+Pkg.add("JuliaDB")
+
