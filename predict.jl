@@ -8,6 +8,8 @@ function read_response(
     return response
 end
 
-function predict(x, y, time_frame, eta)
-    return eta / time_frame + (x * y)
+function predict(clustor_lat, clustor_lng, lat, lng, time_frame)
+    virus_factor = rand(1:100) / 100
+    eta = abs(lat - clustor_lat + lng - clustor_lng)
+    return eta * virus_factor / time_frame 
 end
